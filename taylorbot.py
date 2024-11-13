@@ -4,7 +4,7 @@ import argparse
 import pandas as pd
 from dotenv import load_dotenv
 from pathlib import Path
-import blueskyapi
+from atproto import Client
 
 load_dotenv()
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     df = loadSongs()
 
     # Set up Bluesky API client
-    client = blueskyapi.Client()
+    client = Client()
     client.login(os.getenv("BLUESKY_USERNAME"), os.getenv("BLUESKY_PASSWORD"))
 
     # Skeet a song (or dry run)
