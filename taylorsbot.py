@@ -1,4 +1,3 @@
-import csv
 import os
 import argparse
 import pandas as pd
@@ -7,6 +6,24 @@ from pathlib import Path
 from atproto import Client
 
 load_dotenv()
+
+SESSION_FILE = Path(".session.json")
+
+
+def get_client():
+    client = Client()
+    if SESSION_FILE.exists():
+        try:
+            session = SESSION_FILE.read_text()
+            client.login(session_string=session)
+        except Exception:
+            # Session expired or invalid, login fresh
+            client.login(os.getenv("BLUESKY_USERNAME"), os.getenv("BLUESKY_PASSWORD"))
+            SESSION_FILE.write_text(client.export_session_string())
+    else:
+        client.login(os.getenv("BLUESKY_USERNAME"), os.getenv("BLUESKY_PASSWORD"))
+        SESSION_FILE.write_text(client.export_session_string())
+    return client
 
 
 def loadSongs():
@@ -43,9 +60,8 @@ if __name__ == "__main__":
     # Load songs
     df = loadSongs()
 
-    # Set up Bluesky API client
-    client = Client()
-    client.login(os.getenv("BLUESKY_USERNAME"), os.getenv("BLUESKY_PASSWORD"))
+    # Set up Bluesky API client with session persistence
+    client = get_client()
 
     # Skeet a song (or dry run)
     skeet_song(client, df, args.dry_run)
